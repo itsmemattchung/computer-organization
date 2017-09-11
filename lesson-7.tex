@@ -1,0 +1,58 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\title{Lesson 7 - Discrete Mathematics}
+\author{Matt Chung}
+\date{September 09 2017}
+\usepackage{tikz}
+\usepackage{verbatim}
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+
+\begin{document}
+\maketitle
+
+\section{}
+The primary functions of a CPU is to fetch program instructions, decoding these instructions and performing operations on the data.
+
+\section{}
+When the CPU finishes executing its current instruction, the next thing it does is check if an interrupt has occurred (how it does this? The book does not cover).If there's no interrupt, the CPU continues on just like normal business, fetching the next sequence from the program counter. But if there's an interrupt, the CPU must then decides whether or not it needs to immediately process the interrupt. When the interrupt must be processed immediately, it is known as a nonmaskable interrupt; if it can be non-critical and can be suspended, it is known as a maskable interrupt.
+
+Let's assumine for a moment that the CPU just detected an interrupt, what does the CPU do next? First, it needs to save the state of the current program, storing all it's values (in either other registers or memory). Then, it processes the interrupt; how it processes the interrupt depends on interrupt service routine, the block of code associated with the type of interrupt.
+
+Once the interrupt has been processed, it loads the previous program, setting the PC with the next instruction.
+
+How many bits are required to address a 4M x 16 main memory if a) main memory is byte addressable and b) main memory is word addressable ?
+
+What is a word? The word is the number of bits of the width of the memory.
+
+\subsection{4M x 16 an byte addressable}
+
+\textbf{Solution:} $2^{24}$
+
+To determine the number of bits we need to address the memory, we can convert the configuration into a formula: $2^{2} \times 2^{20} \times 2^2$. The first number represent the $4$ in $4M$; $2^{20}$ for million, the $M$ in $4M$; finally, the last digit represents the number of words—since there are 8 bits in a byte and each row has 16 bits, we get $2^2$. Therefore, in total, we get $2^24$.
+
+\subsection{4M x 16 word addressable}
+
+\textbf{Solution:} $2^{22}$
+
+Similar to the byte addressable, we formulate the number of bits with the following question: $2^2 \times 2^22$ 
+
+\section{}
+
+2048 bytes containing 64 x 8 RAM chips and assuming byte-addressable memory, which of the seven diagrams suits best?
+
+First, let's convert 2048, representing it in binary: $2^11$. 
+
+The deliberate (I think) chooses the word \textit{several}, hoping that the reader (me) extrapolates the number. So, since 64 x 8 equates to 512 bytes and we have a total of 2048 bytes, we can calculate the number by dividing those two numbers, giving us 4, the number of of chips.
+
+So, we now need to determine the following:
+\begin{itemize}
+    \item How many bits are needed to select the right chip?
+    \item How many bits are needed for all the addresses for a given chip
+\end{itemize}
+
+Well, since we have 4 chips, then we need 2 bits. And since there are 64 rows in each chip, we can address the right row in binary: $2^8$.
+
+In summary, we need 2 bits to identify the correct chip and another 8 bits to identify the right address within that chip.
+
+
+\end{document}

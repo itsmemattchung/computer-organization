@@ -18,8 +18,11 @@
 # However, there are variables that need not be preserved, such as:
 # $t0 = array[low] (address)
 # $t1 = array[left] (address)
+# $t2 = array[left] (value)
 # $t2 = array[right] (value)
 # $t3 = array[right] (address) -- since I'm unsure whether $a1 gets preserved across the call
+# $t4 = address offset for array[right]
+
 
 	    .data
 numbers:	.word 8, 2, 7, 10, 5, 6, 3, 4, 9, 3, 1
@@ -29,9 +32,8 @@ length:		.word 11
 main:
 	la $a0, numbers		# Load the address numbers into $a0, the first argument
 	li $a1, 0		# Load 0 into $a, the second argument
-	li $a2, 0		# Load 
 	lw $t0, length		# Load the length of the array into temporary register $t0
-	sub $a3, $t0, 1		# Subtract 1 from the length of the array and store into $a3, the first argument
+	sub $a2, $t0, 1		# Subtract 1 from the length of the array and store into $a3, the first argument
 	j quicksort
 	li $v0, 10
 	syscall
@@ -61,15 +63,32 @@ partition_init:
 	sw $s2, 16($sp)
 	sw $s3, 20($sp)
 	sw $s4, 24($sp)
-	move $s0, $a1		# Store value of low to left, $s0
-	move $s1, $a2		# Store value of high to right, $s1
-	move $s2, $a0		# Store address of array in $s2
-	lw $s3, 0($s2)		# Store the value of array[low] into pivot
+	move $s0, $a1					# Store value of low to left, $s0
+	move $s1, $a2					# Store value of high to right, $s1
+	move $s2, $a0					# Store address of array in $s2
+	lw $s3, 0($s2)					# Store the value of array[low] into pivot
 
 while_left_lt_right:
 	bge $s0, $s1, end_while_left_lt_right
 
 while_array_right_gt_pivot:
+	mul $s4, $s1, 4					# Calculate offset of array[right]
+	add $s4, $s2, $s4				# Calculate memory address of array[right]
+	lw $s4, 0($s4)					# Load array[right] into $s4
+	ble $s4, $s3, end_while_array_right_gt_pivot	
+	sub $s1, $s1, 1
+	j while_array_right_gt_pivot
+	
+end_while_array_right_gt_pivot:
+
+while_left_lt_right_and_array_left_lte_pivot:
+	bge $s0, $s1, end_while_left_lt_right_and_array_left_lte_pivot	# Jump to end of loop if !(left < right)
+	mul $t1, $s0, 4							# Calculate offset for array[left]
+	add $t1, $s2, $t1						# Calculate memory address of array[left]
+	lw  $t2, 0($t1)							# Load array[left] into $t2
+
+end_while_left_lt_right_and_array_left_lte_pivot:
 
 end_while_left_lt_right:
 	
+

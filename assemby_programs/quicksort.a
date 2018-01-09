@@ -22,6 +22,9 @@
 # $t2 = array[right] (value)
 # $t3 = array[right] (address) -- since I'm unsure whether $a1 gets preserved across the call
 # $t4 = address offset for array[right]
+# $t5 = temporary variable for swap, although I'd like to eliminate this eventually and reuse $t1, but only after verifying the program works and after verifying
+# that I'm not overwriting a referenced variable
+# $t6 = temporary variable for swap
 
 
 	    .data
@@ -73,7 +76,7 @@ while_left_lt_right:
 
 while_array_right_gt_pivot:
 	mul $t3, $s1, 4					# Calculate offset of array[right]
-	add $t3, $s2, $s4				# Calculate memory address of array[right]
+	add $t3, $s2, $t3				# Calculate memory address of array[right]
 	lw $s4, 0($t3)					# Load array[right] into $s4
 	ble $s4, $s3, end_while_array_right_gt_pivot	
 	sub $s1, $s1, 1
@@ -103,3 +106,10 @@ end_if_left_lt_right:
 end_while_left_lt_right:
 
 swap:
+	move $t5, $a0							# Store memory address of A into $t5
+	lw $t5, 0($t5)							# Load value into $t5
+	move $t6, $a1							# Store memory address of B into $t6
+	lw $t6, 0($t6)							# Load value into $t6
+	sw $t5, 0($a1)							# Store A into memory address of B
+	sw $t6, 0($a0)							# Store B into memory address of A
+

@@ -72,9 +72,9 @@ while_left_lt_right:
 	bge $s0, $s1, end_while_left_lt_right
 
 while_array_right_gt_pivot:
-	mul $s4, $s1, 4					# Calculate offset of array[right]
-	add $s4, $s2, $s4				# Calculate memory address of array[right]
-	lw $s4, 0($s4)					# Load array[right] into $s4
+	mul $t3, $s1, 4					# Calculate offset of array[right]
+	add $t3, $s2, $s4				# Calculate memory address of array[right]
+	lw $s4, 0($t3)					# Load array[right] into $s4
 	ble $s4, $s3, end_while_array_right_gt_pivot	
 	sub $s1, $s1, 1
 	j while_array_right_gt_pivot
@@ -92,10 +92,14 @@ while_left_lt_right_and_array_left_lte_pivot:
 
 end_while_left_lt_right_and_array_left_lte_pivot:
 
-while_left_lt_right:
+if_left_lt_right:
+	bge $s0, $s1, end_if_left_lt_right				# jump to end_if if !(left < right)
+	move $a0, $t1							# store address of array[left] to $a0
+	move $a1, $t3							# store address of array[right] to $a1
+	jal swap
+
+end_if_left_lt_right:
 
 end_while_left_lt_right:
 
-end_while_left_lt_right:
-	
-
+swap:

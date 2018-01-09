@@ -86,8 +86,15 @@ while_left_lt_right_and_array_left_lte_pivot:
 	mul $t1, $s0, 4							# Calculate offset for array[left]
 	add $t1, $s2, $t1						# Calculate memory address of array[left]
 	lw  $t2, 0($t1)							# Load array[left] into $t2
+	bgt $t2, $s3, end_while_left_lt_right_and_array_left_lte_pivot	# Break out of loop if !array[left] <= pivot
+	addi $s0, $s0, 1						# +1 to left
+	j while_left_lt_right_and_array_left_lte_pivot			# return to loop
 
 end_while_left_lt_right_and_array_left_lte_pivot:
+
+while_left_lt_right:
+
+end_while_left_lt_right:
 
 end_while_left_lt_right:
 	

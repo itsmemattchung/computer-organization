@@ -24,7 +24,10 @@
 # $t4 = address offset for array[right]
 # $t5 = temporary variable for swap, although I'd like to eliminate this eventually and reuse $t1, but only after verifying the program works and after verifying
 # that I'm not overwriting a referenced variable
-# $t6 = temporary variable for swap
+# $t6 = temporary variable for swap function
+# $t7 = temporary for final swap
+# $t8 = temporary for final swap
+
 
 
 	    .data
@@ -102,8 +105,12 @@ if_left_lt_right:
 	jal swap
 
 end_if_left_lt_right:
+	j while_left_lt_right
 
 end_while_left_lt_right:
+
+move_pivot_to_final_position:
+	
 
 swap:
 	move $t5, $a0							# Store memory address of A into $t5
@@ -112,4 +119,3 @@ swap:
 	lw $t6, 0($t6)							# Load value into $t6
 	sw $t5, 0($a1)							# Store A into memory address of B
 	sw $t6, 0($a0)							# Store B into memory address of A
-

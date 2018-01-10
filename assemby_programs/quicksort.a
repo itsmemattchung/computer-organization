@@ -55,6 +55,8 @@ quicksort:
 	move $s1, $a1		# Store $a1 (low) into $s1
 	move $s2, $a2		# Store $a2 (low) into $s2
 	jal partition
+	li $v0, 10		# system code for exit
+	syscall
 
 quicksort_if:
 
@@ -62,17 +64,21 @@ quicksort_end_if:
 
 partition:
 partition_init:
-	sub $sp, $sp, -24	# save room for the return address
+	sub $sp, $sp, -24				# save room for the return address
 	sw $ra, 4($sp)
 	sw $s0, 8($sp)
 	sw $s1, 12($sp)
 	sw $s2, 16($sp)
 	sw $s3, 20($sp)
 	sw $s4, 24($sp)
+	sw $s5, 28($sp)
+	move $s5, $a1					# Store value of low into $s5, which can be referenced later on
 	move $s0, $a1					# Store value of low to left, $s0
 	move $s1, $a2					# Store value of high to right, $s1
 	move $s2, $a0					# Store address of array in $s2
-	lw $s3, 0($s2)					# Store the value of array[low] into pivot
+	mul $s3, $s0, 4					# Caculate offset of array[low] into $s3
+	add $s3, $s2, $s3				# Add offset to array
+	lw $s3, 0($s3)					# Store the value of array[low] into pivot
 
 while_left_lt_right:
 	bge $s0, $s1, end_while_left_lt_right
@@ -105,11 +111,25 @@ if_left_lt_right:
 	jal swap
 
 end_if_left_lt_right:
-	j while_left_lt_right
 
 end_while_left_lt_right:
 
 move_pivot_to_final_position:
+	mul $t7, $s1, 4							# Calculate the offset for array[right] and store into $t7
+	add $t7, $s2, $t7						# Calculate memory address of array[right] and store into $t7
+	lw $t8, 0($t7)							# Load the value of array[right] into $t8
+	mul $t9, $s5, 4							# Calculate offset of array[low] into $t8
+	add $t9, $s2, $t9						# Store address of array[low] into $t8
+	sw $t8, 0($t9)							# Save value of array[right] into array[low] (i.e. array[low] = array[right])
+	sw $s3, 0($t7)							# Store pivot at array[right]
+	lw $ra, 4($sp)							# Load $ra previously saved on stack into $ra
+	addi $sp, $sp, 24						# Pop call frame
+	move $v0, $s1							# Move right into $v0, the return value
+	jr $ra								# Return $ra
+
+
+end_partition:
+
 	
 
 swap:
@@ -119,3 +139,4 @@ swap:
 	lw $t6, 0($t6)							# Load value into $t6
 	sw $t5, 0($a1)							# Store A into memory address of B
 	sw $t6, 0($a0)							# Store B into memory address of A
+	jr $ra								# Jump to the instruction stored in $ra

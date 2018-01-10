@@ -66,6 +66,13 @@ quicksort:
 	add $a1, $a1, 1		# Add 1 to $a1 (i.e. pivot + 1)
 	move $a3, $s2		# Move high (i.e. $s2) into $a2
 	jal quicksort		# Second call to quicksort (i.e. quickSort(array, pivotPosition + 1, high)
+	lw $ra, 4($sp)		# Load $ra previously saved on stack into $ra
+	lw $s0, 8($sp)		# Restore $s0 from the stack
+	lw $s1, 12($sp)		# Restore $s1 from the stack
+	lw $s2, 16($sp)		# Restore $s2 from the stack
+	addi $sp, $sp, 20	# POPPPPP call frame
+	jr $ra
+	
 
 quicksort_if:
 
@@ -122,6 +129,7 @@ if_left_lt_right:
 	jal swap
 
 end_if_left_lt_right:
+	j while_left_lt_right
 
 end_while_left_lt_right:
 

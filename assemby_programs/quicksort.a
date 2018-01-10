@@ -40,7 +40,7 @@ main:
 	li $a1, 0		# Load 0 into $a, the second argument
 	lw $t0, length		# Load the length of the array into temporary register $t0
 	sub $a2, $t0, 1		# Subtract 1 from the length of the array and store into $a3, the first argument
-	j quicksort
+	jal quicksort
 	li $v0, 10
 	syscall
 
@@ -136,11 +136,11 @@ move_pivot_to_final_position:
 	lw $ra, 4($sp)							# Load $ra previously saved on stack into $ra
 	move $v0, $s1							# Move right into $v0, the return value
 	lw $s0, 8($sp)							# Restore $s0 from the stack
-	sw $s1, 12($sp)							# Restore $s1 from the stack
-	sw $s2, 16($sp)							# Restore $s2 from the stack
-	sw $s3, 20($sp)							# Restore $s3 from the stack
-	sw $s4, 24($sp)							# Restore $s4 from the stack
-	sw $s5, 28($sp)							# Restore $s5 from the stack
+	lw $s1, 12($sp)							# Restore $s1 from the stack
+	lw $s2, 16($sp)							# Restore $s2 from the stack
+	lw $s3, 20($sp)							# Restore $s3 from the stack
+	lw $s4, 24($sp)							# Restore $s4 from the stack
+	lw $s5, 28($sp)							# Restore $s5 from the stack
 	addi $sp, $sp, 24						# POPPPPP call frame
 	jr $ra								# Return $ra
 

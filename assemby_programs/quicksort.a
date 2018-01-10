@@ -53,8 +53,19 @@ quicksort:
 	sw $s2, 16($sp)		# Store $s3 on the stack
 	move $s0, $a0		# Store $a0 (address of array) into $s0
 	move $s1, $a1		# Store $a1 (low) into $s1
-	move $s2, $a2		# Store $a2 (low) into $s2
+	move $s2, $a2		# Store $a2 (high) into $s2
 	jal partition
+	move $t1, $v0		# Store pivot -1 into $a2
+	move $a0, $s0		# Store $s0, array, into $a0
+	move $a1, $s1		# Store $s1, low, into $a1
+	move $a2, $v0		# Store pivot position in $a2
+	sub $a2, $a2, 1		# Subtract 1 from $a2 (i.e. pivot - 1)
+	jal quicksort		# First call to quicksort (i.e. quickSort(array, low, pivotPosition - 1)
+	move $a0, $s0		# Store array into $a0
+	move $a1, $v0		# Move pivot into $a1
+	add $a1, $a1, 1		# Add 1 to $a1 (i.e. pivot + 1)
+	move $a3, $s2		# Move high (i.e. $s2) into $a2
+	jal quicksort		# Second call to quicksort (i.e. quickSort(array, pivotPosition + 1, high)
 	li $v0, 10		# system code for exit
 	syscall
 

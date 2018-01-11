@@ -4,6 +4,7 @@
 # s0 = array (address)
 # s1 = low
 # s2 = high
+# s3 = pivot
 #
 # == parition ==
 # since we need to preserve the value of the variables within the function
@@ -45,51 +46,54 @@ main:
 	syscall
 
 quicksort:
-	bge $a1, $a2, quicksort_end_if
-	sub $sp, $sp, -20	# Subtract the stack by 12 bytes, capable of 3 registers (plus the 1 return address)
-	sw $ra, 4($sp)		# Store return address on the stack
-	sw $s0, 8($sp)		# Store $s1 on the stack
-	sw $s1, 12($sp)		# Store $s2 on the stack
-	sw $s2, 16($sp)		# Store $s3 on the stack
+	bge $a1, $a2, quicksort_end_if	# CHeck if low < high
+
+quicksort_body:
+	addi, $sp, $sp, -24	# Subtract the stack by 12 bytes, capable of 3 registers (plus the 1 return address)
+	sw $ra, 0($sp)		# Store return address on the stack
+	sw $s0, 4($sp)		# Store $s1 on the stack
+	sw $s1, 8($sp)		# Store $s2 on the stack
+	sw $s2, 12($sp)		# Store $s3 on the stack
+	sw $s3, 16($sp)		# Store $s3 on the stack
+	sw $s4, 20($sp)		# Store $s3 on the stack
 	move $s0, $a0		# Store $a0 (address of array) into $s0
 	move $s1, $a1		# Store $a1 (low) into $s1
 	move $s2, $a2		# Store $a2 (high) into $s2
 	jal partition		# CALL parition
-	move $t1, $v0		# Store pivot -1 into $a2
+	move $s4, $v0		# Store pivot -1 into $a2
 	move $a0, $s0		# Store $s0, array, into $a0
 	move $a1, $s1		# Store $s1, low, into $a1
-	move $a2, $v0		# Store pivot position in $a2
+	move $a2, $s4		# Store pivot position in $a2
 	sub $a2, $a2, 1		# Subtract 1 from $a2 (i.e. pivot - 1)
 	jal quicksort		# First call to quicksort (i.e. quickSort(array, low, pivotPosition - 1)
 	move $a0, $s0		# Store array into $a0
-	move $a1, $v0		# Move pivot into $a1
+	move $a1, $s4		# Move pivot into $a1
 	add $a1, $a1, 1		# Add 1 to $a1 (i.e. pivot + 1)
-	move $a3, $s2		# Move high (i.e. $s2) into $a2
+	move $a2, $s2		# Move high (i.e. $s2) into $a2
 	jal quicksort		# Second call to quicksort (i.e. quickSort(array, pivotPosition + 1, high)
-	lw $ra, 4($sp)		# Load $ra previously saved on stack into $ra
-	lw $s0, 8($sp)		# Restore $s0 from the stack
-	lw $s1, 12($sp)		# Restore $s1 from the stack
-	lw $s2, 16($sp)		# Restore $s2 from the stack
-	addi $sp, $sp, 20	# POPPPPP call frame
+	lw $ra, 0($sp)		# Load $ra previously saved on stack into $ra
+	lw $s0, 4($sp)		# Restore $s0 from the stack
+	lw $s1, 8($sp)		# Restore $s1 from the stack
+	lw $s2, 12($sp)		# Restore $s2 from the stack
+	lw $s3, 16($sp)		# Restore $s2 from the stack
+	lw $s4, 20($sp)		# Restore $s2 from the stack
+	addi $sp, $sp, 24	# POPPPPP call frame
 	jr $ra
-	
-
-quicksort_if:
+end_quicksort_body:
 
 quicksort_end_if:
-	li $v0, 10		# system code for exit
-	syscall			# system call -- get out of here!
+	jr $ra
 
 partition:
 partition_init:
-	sub $sp, $sp, -24				# save room for the return address
-	sw $ra, 4($sp)
-	sw $s0, 8($sp)
-	sw $s1, 12($sp)					# save room for s1 on the stack
-	sw $s2, 16($sp)
-	sw $s3, 20($sp)
-	sw $s4, 24($sp)
-	sw $s5, 28($sp)
+	addi $sp, $sp, -28				# save room for the return address
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)					# save room for s1 on the stack
+	sw $s2, 12($sp)
+	sw $s3, 16($sp)
+	sw $s4, 20($sp)
+	sw $s5, 24($sp)
 	move $s5, $a1					# Store value of low into $s5, which can be referenced later on
 	move $s0, $a1					# Store value of low to left, $s0
 	move $s1, $a2					# Store value of high to right, $s1
@@ -102,11 +106,11 @@ while_left_lt_right:
 	bge $s0, $s1, end_while_left_lt_right
 
 while_array_right_gt_pivot:
-	mul $t3, $s1, 4					# Calculate offset of array[right]
+	mul $t3, $s1, 4					# Calculate offset of array[right] ; definitely an issue with this while_array. this should never allow right to be 0
 	add $t3, $s2, $t3				# Calculate memory address of array[right]
 	lw $s4, 0($t3)					# Load array[right] into $s4
-	ble $s4, $s3, end_while_array_right_gt_pivot	
-	sub $s1, $s1, 1
+	ble $s4, $s3, end_while_array_right_gt_pivot	# Check if array[right] > pivot 
+	sub $s1, $s1, 1					# Subtract right by 1
 	j while_array_right_gt_pivot
 	
 end_while_array_right_gt_pivot:
@@ -141,21 +145,17 @@ move_pivot_to_final_position:
 	add $t9, $s2, $t9						# Store address of array[low] into $t8
 	sw $t8, 0($t9)							# Save value of array[right] into array[low] (i.e. array[low] = array[right])
 	sw $s3, 0($t7)							# Store pivot at array[right]
-	lw $ra, 4($sp)							# Load $ra previously saved on stack into $ra
 	move $v0, $s1							# Move right into $v0, the return value
-	lw $s0, 8($sp)							# Restore $s0 from the stack
-	lw $s1, 12($sp)							# Restore $s1 from the stack
-	lw $s2, 16($sp)							# Restore $s2 from the stack
-	lw $s3, 20($sp)							# Restore $s3 from the stack
-	lw $s4, 24($sp)							# Restore $s4 from the stack
-	lw $s5, 28($sp)							# Restore $s5 from the stack
-	addi $sp, $sp, 24						# POPPPPP call frame
-	jr $ra								# Return $ra
-
-
+	lw $ra, 0($sp)							# Load $ra previously saved on stack into $ra
+	lw $s0, 4($sp)							# Restore $s0 from the stack
+	lw $s1, 8($sp)							# Restore $s1 from the stack
+	lw $s2, 12($sp)							# Restore $s2 from the stack
+	lw $s3, 16($sp)							# Restore $s3 from the stack
+	lw $s4, 20($sp)							# Restore $s4 from the stack
+	lw $s5, 24($sp)							# Restore $s5 from the stack
+	addi $sp, $sp, 28						# POPPPPP call frame
+	jr $ra								# Return $ra from partition method
 end_partition:
-
-	
 
 swap:
 	move $t5, $a0							# Store memory address of A into $t5

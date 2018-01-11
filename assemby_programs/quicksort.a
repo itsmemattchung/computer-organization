@@ -1,3 +1,6 @@
+# Author: Matt Chung
+# This program performs a quicksort against integer numbers, implementing the partition method.
+#
 # == quicksort ==
 # We need to store two variables that get preserved across calls: low and high
 # In addition,we need need to store the value 'partition'
@@ -46,10 +49,13 @@ main:
 	syscall
 
 quicksort:
+
+quicksort_if:
+
 	bge $a1, $a2, quicksort_end_if	# CHeck if low < high
 
 quicksort_body:
-	addi, $sp, $sp, -24	# Subtract the stack by 12 bytes, capable of 3 registers (plus the 1 return address)
+	addi, $sp, $sp, -24	# Update the stack pointer, allocating enough room for savin the 6 registers
 	sw $ra, 0($sp)		# Store return address on the stack
 	sw $s0, 4($sp)		# Store $s1 on the stack
 	sw $s1, 8($sp)		# Store $s2 on the stack
@@ -59,7 +65,7 @@ quicksort_body:
 	move $s0, $a0		# Store $a0 (address of array) into $s0
 	move $s1, $a1		# Store $a1 (low) into $s1
 	move $s2, $a2		# Store $a2 (high) into $s2
-	jal partition		# CALL parition
+	jal partition		# Call the subprogram partition
 	move $s4, $v0		# Store pivot -1 into $a2
 	move $a0, $s0		# Store $s0, array, into $a0
 	move $a1, $s1		# Store $s1, low, into $a1
@@ -71,13 +77,13 @@ quicksort_body:
 	add $a1, $a1, 1		# Add 1 to $a1 (i.e. pivot + 1)
 	move $a2, $s2		# Move high (i.e. $s2) into $a2
 	jal quicksort		# Second call to quicksort (i.e. quickSort(array, pivotPosition + 1, high)
-	lw $ra, 0($sp)		# Load $ra previously saved on stack into $ra
+	lw $ra, 0($sp)		# Restore the return address from the stack and back into $ra
 	lw $s0, 4($sp)		# Restore $s0 from the stack
 	lw $s1, 8($sp)		# Restore $s1 from the stack
 	lw $s2, 12($sp)		# Restore $s2 from the stack
 	lw $s3, 16($sp)		# Restore $s2 from the stack
 	lw $s4, 20($sp)		# Restore $s2 from the stack
-	addi $sp, $sp, 24	# POPPPPP call frame
+	addi $sp, $sp, 24	# Pop the call frame
 	jr $ra
 end_quicksort_body:
 
@@ -86,15 +92,15 @@ quicksort_end_if:
 
 partition:
 partition_init:
-	addi $sp, $sp, -28				# save room for the return address
-	sw $ra, 0($sp)
-	sw $s0, 4($sp)
-	sw $s1, 8($sp)					# save room for s1 on the stack
-	sw $s2, 12($sp)
-	sw $s3, 16($sp)
-	sw $s4, 20($sp)
-	sw $s5, 24($sp)
-	move $s5, $a1					# Store value of low into $s5, which can be referenced later on
+	addi $sp, $sp, -28				# Update the stack pointer, allocating enough room for savin the 6 registers
+	sw $ra, 0($sp)					# Store the return address (i.e. $ra) on the stack
+	sw $s0, 4($sp)					# Store $s0 on the stack
+	sw $s1, 8($sp)					# Store $s1 on the stack
+	sw $s2, 12($sp)					# Store $s2 on the stack
+	sw $s3, 16($sp)					# Store $s3 on the stack
+	sw $s4, 20($sp)					# Store $s4 on the stack
+	sw $s5, 24($sp)					# Store $s5 on the stack
+	move $s5, $a1					# Save value of low
 	move $s0, $a1					# Store value of low to left, $s0
 	move $s1, $a2					# Store value of high to right, $s1
 	move $s2, $a0					# Store address of array in $s2

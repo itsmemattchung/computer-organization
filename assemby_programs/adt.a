@@ -1,4 +1,9 @@
 # t0
+# to_uppercase
+# This function accepts a pointer (to a string) and converts all lowercase letters
+# to uppercase, directly manipulating the array -- in place. We do this to avoid:
+#  1) managing a heap
+#  2) passing in two arguments, forcing the caller to manage a runtime stack for the new string
 	.data
 user_string_1: .space 64
 user_string_2: .space 64
@@ -24,8 +29,25 @@ main:
 	la	$a0, user_string_2	# Load user_string_1 into argument
 	li	$a1, 64			 
 	syscall
+	la	$a0, user_string_1
+	jal	to_uppercase
 	li 	$v0, 4
 	la 	$a0, str_prompt_3
 	syscall
 	li $v0, 10
 	syscall				# Exit to the program
+
+to_uppercase:
+	move	$t0, $a0				# Save array address from $a0 to $1
+	li	$t1, 0					# Initialize i (i.e. index) to 0
+while_not_end_of_string:
+	add	$t2, $t1, $t0				# Calculate address
+	lb	$t3, 0($t2)				# Load byte (not word) into $t2
+
+uppercase_char:
+	andi	$t4, $t3, 0x20				# Convert character to uppercase, regardless
+	sb	$t4, 0($t3)				# Store byte into original position
+
+
+end_while_not_end_of_string:
+

@@ -4,6 +4,7 @@
 # to uppercase, directly manipulating the array -- in place. We do this to avoid:
 #  1) managing a heap
 #  2) passing in two arguments, forcing the caller to manage a runtime stack for the new string
+
 	.data
 user_string_1: .space 64
 user_string_2: .space 64
@@ -37,17 +38,25 @@ main:
 	li $v0, 10
 	syscall				# Exit to the program
 
+
 to_uppercase:
 	move	$t0, $a0				# Save array address from $a0 to $1
 	li	$t1, 0					# Initialize i (i.e. index) to 0
 while_not_end_of_string:
 	add	$t2, $t1, $t0				# Calculate address
 	lb	$t3, 0($t2)				# Load byte (not word) into $t2
+	beq	$t3, 0, end_while_not_end_of_string	# If null terminator (i.e. 0), then jump to end of while loop
+
+if_alphabetical_char:
+	blt $t3, 97, end_if_aphabetical_char		# Check if char less than 'a'
+	bgt $t3, 122, end_if_aphabetical_char		# Check if char is greater than 'z'
 
 uppercase_char:
-	andi	$t4, $t3, 0x20				# Convert character to uppercase, regardless
-	sb	$t4, 0($t3)				# Store byte into original position
+	andi	$t4, $t3, 0xDF				# Convert character to uppercase, regardless
+	sb	$t4, 0($t2)				# Store byte into original position
 
-
+end_if_aphabetical_char:
+	add $t1, $t1, 1
+	j while_not_end_of_string
 end_while_not_end_of_string:
-
+	jr $ra

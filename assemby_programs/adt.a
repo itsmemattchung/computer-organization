@@ -37,10 +37,12 @@ main:
 	la	$a0, user_string_1
 	la	$a1, adt_string_1
 	jal	adt_set
-	li 	$v0, 4
-	la 	$a0, str_prompt_3
+	la	$a0, adt_string_1		# Load bitstring into $a0, the first argument
+	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
+	li 	$v0, 4			# Load print system call
+	la 	$a0, str_prompt_3	# Print "exit"
 	syscall
-	li $v0, 10
+	li $v0, 10			# Load exit() system call
 	syscall				# Exit to the program
 
 
@@ -98,7 +100,7 @@ print_letters_in_bit_string:
 	sw	$ra, 0($sp)				# Store retunr address on the stack
 	move	$t6, $sp				# Copy address of $rsp to $t6, the register holding address of ascii string
 	add	$t6, $t6, 4				# Load address of the ascii string that we'll allocate for the print call
-	move	$t0, $a0				# Copy first argument, stored in $a0, to $t0
+	lw	$t0, 0($a0)				# Load contents of bit-map (in $a0) into $t0
 	li	$t1, 0					# Counter for bit string
 	li	$t2, 0					# Counter to hold the offset for the new ascii string
 
@@ -123,6 +125,6 @@ end_while_not_end_of_bitstring:
 	sb	$t7, 1($t5)				# Store newline in penutlimate position
 	li	$t7, 0					# Load null terminator (i.e. 0)
 	sb	$t7, 2($t5)				# Store null terminator in last position
-	lw	$ra, 4($sp)				# restore the return
+	lw	$ra, 0($sp)				# restore the return
 	add	$sp, $sp, 36
 	jr	$ra

@@ -8,8 +8,8 @@
 	.data
 user_string_1: .space 64
 user_string_2: .space 64
-adt_string_1: .space 32
-adt_string_2: .space 32
+adt_string_1: .space 4
+adt_string_2: .space 4
 
 str_prompt_1:	.asciiz	"\nInput first string:"
 str_prompt_2:	.asciiz	"\nInput second string:"
@@ -46,8 +46,9 @@ main:
 
 adt_set:
 	move	$t0, $a0
-	move	$t1, $a1
-	li	$t2, 0					# Initialize i (i.e. index) to 0
+	move	$t6, $a1					# Load the address of the 32-bit string into $t6
+	lw	$t1, 0($t6)					# Load word (32-bit) into $t1
+	li	$t2, 0						# Initialize i (i.e. index) to 0
 
 adt_set_while_not_end_of_string:
 	add	$t3, $t2, $t0					# Calculate address
@@ -55,8 +56,8 @@ adt_set_while_not_end_of_string:
 	beq	$t4, 0, adt_set_end_while_not_end_of_string	# If null terminator (i.e. 0), then jump to end of while loop
 
 adt_set_if_alphabetical_char:
-	blt 	$t3, 65, end_if_aphabetical_char		# Check if char less than 'A'
-	bgt 	$t3, 90, end_if_aphabetical_char		# Check if char is greater than 'Z'
+	blt 	$t4, 65, adt_set_end_if_aphabetical_char	# Check if char less than 'A'
+	bgt 	$t4, 90, adt_set_end_if_aphabetical_char	# Check if char is greater than 'Z'
 	sub	$t4, $t4, 65					# Subtract ascii character by 65 - this is the amount we are going to shift left by
 	li	$t5, 1						# $t5 used for bit masking
 	sllv	$t5, $t5, $t4					# Position the letter into the correct position, determined by $t4
@@ -67,6 +68,7 @@ adt_set_end_if_aphabetical_char:
 	j adt_set_while_not_end_of_string
 
 adt_set_end_while_not_end_of_string:
+	sw	$t1, 0($t6)					# Store 32-bit bit map into $t6
 	jr $ra
 
 to_uppercase:

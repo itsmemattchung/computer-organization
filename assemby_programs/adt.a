@@ -93,34 +93,36 @@ end_if_aphabetical_char:
 end_while_not_end_of_string:
 	jr $ra
 
-
 print_letters_in_bit_string:
-	add	$rsp, $rsp, -36				# Store the ret and allocate 32 bytes for ascii string
-	sw	$ret, 0($rsp)				# Store retunr address on the stack
-	move	$t6, $rsp				# Copy address of $rsp to $t6, the register holding address of ascii string
-	add	$t6, $t6, $rsp				# Load address of the ascii string that we'll allocate for the print call
-	sw	$s0, 4($rsp)				# $s0 holds the ascii string that will be printed as a system call
-	lw	$t0, $a0
+	add	$sp, $sp, -36				# Store the ret and allocate 32 bytes for ascii string
+	sw	$ra, 0($sp)				# Store retunr address on the stack
+	move	$t6, $sp				# Copy address of $rsp to $t6, the register holding address of ascii string
+	add	$t6, $t6, 4				# Load address of the ascii string that we'll allocate for the print call
+	move	$t0, $a0				# Copy first argument, stored in $a0, to $t0
 	li	$t1, 0					# Counter for bit string
 	li	$t2, 0					# Counter to hold the offset for the new ascii string
 
 while_not_end_of_bitstring:
-	be	$t1, 25, end_while_not_end_of_string	# Once we reach last character, break out of while loop
+	beq	$t1, 25, end_while_not_end_of_bitstring # Once we reach last character, break out of while loop
 	srlv	$t3, $t0, $t1				# Shift right by counter
 	and	$t3, $t3, 0x01				# and the newly shifted bitstring by 1
 
 if_char_is_set:
-	be	$t3, 0, end_if_char_is_set
+	beq	$t3, 0, end_if_char_is_set
 	add	$t4, $t1, 64				# Add 65 (i.e. first position for 'A') to $t1
 	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
 	sb	$t4, 0($t5)				# Store ascii character into new ascii string
 	add	$t2, $t2, 1				# Bump ascii string offset counter by 1
 
 end_if_char_is_set:
-	add $t1, $t1, 1
+	add $t1, $t1, 1					# Increment bit-string counter by 1
 	j while_not_end_of_bitstring
 
-end_while_not_end_of_string:
-	lw	$ret, 4($rsp)
-	lw	$s0, 8($rsp)
-	add	$rsp, $rsp, 8
+end_while_not_end_of_bitstring:
+	li	$t7, 0x0A				# Store new line
+	sb	$t7, 1($t5)				# Store newline in penutlimate position
+	li	$t7, 0					# Load null terminator (i.e. 0)
+	sb	$t7, 2($t5)				# Store null terminator in last position
+	lw	$ra, 4($sp)				# restore the return
+	add	$sp, $sp, 36
+	jr	$ra

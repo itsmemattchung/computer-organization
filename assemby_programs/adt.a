@@ -14,6 +14,8 @@ adt_string_2: .space 4
 str_prompt_1:	.asciiz	"\nInput first string:"
 str_prompt_2:	.asciiz	"\nInput second string:"
 str_prompt_3:	.asciiz "\nExiting!"
+str_chars_in_bitmap_1:	.asciiz "First bit-map contains the following characters: "
+str_chars_in_bitmap_2:	.asciiz "Second bit-map contains the following characters: "
 
 	.text
 	.globl main
@@ -37,10 +39,27 @@ main:
 	la	$a0, user_string_1
 	la	$a1, adt_string_1
 	jal	adt_set
+	li	$v0, 4
+	la	$a0, str_chars_in_bitmap_1
+	syscall
 	la	$a0, adt_string_1		# Load bitstring into $a0, the first argument
 	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
-	li 	$v0, 4			# Load print system call
-	la 	$a0, str_prompt_3	# Print "exit"
+
+	li	$v0, 4
+	la	$a0, str_chars_in_bitmap_2
+	syscall
+adt_bitstring_2:
+	la	$a0, user_string_2
+	jal	to_uppercase
+	la	$a0, user_string_2
+	la	$a1, adt_string_2
+	jal	adt_set
+
+	la	$a0, adt_string_2		# Load bitstring into $a0, the first argument
+	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
+
+	li 	$v0, 4				# Load print system call
+	la 	$a0, str_prompt_3		# Print "exit"
 	syscall
 	li $v0, 10			# Load exit() system call
 	syscall				# Exit to the program
@@ -111,7 +130,7 @@ while_not_end_of_bitstring:
 
 if_char_is_set:
 	beq	$t3, 0, end_if_char_is_set
-	add	$t4, $t1, 64				# Add 65 (i.e. first position for 'A') to $t1
+	add	$t4, $t1, 65				# Add 65 (i.e. first position for 'A') to $t1
 	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
 	sb	$t4, 0($t5)				# Store ascii character into new ascii string
 	add	$t2, $t2, 1				# Bump ascii string offset counter by 1
@@ -127,4 +146,7 @@ end_while_not_end_of_bitstring:
 	sb	$t7, 2($t5)				# Store null terminator in last position
 	lw	$ra, 0($sp)				# restore the return
 	add	$sp, $sp, 36
+	li 	$v0, 4					# Load print system call
+	move	$a0, $t6				# Copy string into $a0
+	syscall
 	jr	$ra

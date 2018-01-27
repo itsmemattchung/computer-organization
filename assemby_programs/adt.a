@@ -10,12 +10,14 @@ user_string_1: .space 64
 user_string_2: .space 64
 adt_string_1: .space 4
 adt_string_2: .space 4
+adt_string_union: .space 4
 
 str_prompt_1:	.asciiz	"\nInput first string:"
 str_prompt_2:	.asciiz	"\nInput second string:"
 str_prompt_3:	.asciiz "\nExiting!"
 str_chars_in_bitmap_1:	.asciiz "First bit-map contains the following characters: "
 str_chars_in_bitmap_2:	.asciiz "Second bit-map contains the following characters: "
+str_union_output:	.asciiz "The union of the sets are: "
 
 	.text
 	.globl main
@@ -45,9 +47,11 @@ main:
 	la	$a0, adt_string_1		# Load bitstring into $a0, the first argument
 	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
 
+
 	li	$v0, 4
 	la	$a0, str_chars_in_bitmap_2
 	syscall
+
 adt_bitstring_2:
 	la	$a0, user_string_2
 	jal	to_uppercase
@@ -58,6 +62,18 @@ adt_bitstring_2:
 	la	$a0, adt_string_2		# Load bitstring into $a0, the first argument
 	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
 
+print_union:
+	li	$v0, 4
+	la	$a0, str_union_output
+	syscall
+	la	$a0, adt_string_1			
+	la	$a1, adt_string_2
+	la	$a2, adt_string_union
+	jal	union
+	move	$a0, $a2			# Move the union bit-string address into $a0, before calling print_letters_in_bit_string
+	jal	print_letters_in_bit_string
+
+print_exit:
 	li 	$v0, 4				# Load print system call
 	la 	$a0, str_prompt_3		# Print "exit"
 	syscall
@@ -150,3 +166,18 @@ end_while_not_end_of_bitstring:
 	move	$a0, $t6				# Copy string into $a0
 	syscall
 	jr	$ra
+
+union:
+	move	$t1, $a0				# Move pointer of first bit-string to $t1
+	move	$t2, $a1				# Move point of second bitstring to $t2
+	move	$t3, $a2				# Move pointer of third bit string, the union, to $t3
+load_first_bit_string:
+	lw	$t4, 0($t1)				# Load the 32-bit bit map into $t4
+load_second_bit_string:
+	lw	$t5, 0($t2)				# Load the 32-bit bit map into $t5
+bitmap1_or_bitmap2:
+	or	$t6, $t4, $t5				# bitmap1 | bitmap2
+store_union:
+	sw	$t6, 0($t3)				# Store the new bitmap that's been OR'd back to third pointer that was passed in
+union_end:
+	jr $ra

@@ -4,6 +4,18 @@
 # to uppercase, directly manipulating the array -- in place. We do this to avoid:
 #  1) managing a heap
 #  2) passing in two arguments, forcing the caller to manage a runtime stack for the new string
+#
+# I'm thinking out loud as I try to implement the difference of set 1 against set 2. We basically want the items that are in A and only in A, while not in B.
+# 1001    1111    0010
+# 1000    1001    1100
+# ----    ----    ----
+# 0001    0110    0010
+#
+#
+# 0010        -> 0010
+# 1100 -> not -> 0011
+#                ----
+#                0010
 
 	.data
 user_string_1: .space 64
@@ -11,13 +23,18 @@ user_string_2: .space 64
 adt_string_1: .space 4
 adt_string_2: .space 4
 adt_string_union: .space 4
+adt_string_intersection: .space 4
+adt_string_difference: .space 4
 
 str_prompt_1:	.asciiz	"\nInput first string:"
 str_prompt_2:	.asciiz	"\nInput second string:"
 str_prompt_3:	.asciiz "\nExiting!"
-str_chars_in_bitmap_1:	.asciiz "First bit-map contains the following characters: "
-str_chars_in_bitmap_2:	.asciiz "Second bit-map contains the following characters: "
-str_union_output:	.asciiz "The union of the sets are: "
+
+str_chars_in_bitmap_1:		.asciiz "Set A contains: "
+str_chars_in_bitmap_2:		.asciiz "Set B contains: "
+str_union_output:		.asciiz "The union of the sets are: "
+str_intersection_output:	.asciiz "The intersection of the sets are: "
+str_difference_output:		.asciiz "The difference of A - B is: "
 
 	.text
 	.globl main
@@ -71,6 +88,28 @@ print_union:
 	la	$a2, adt_string_union
 	jal	union
 	move	$a0, $a2			# Move the union bit-string address into $a0, before calling print_letters_in_bit_string
+	jal	print_letters_in_bit_string
+
+print_intersection:
+	li	$v0, 4
+	la	$a0, str_intersection_output
+	syscall
+	la	$a0, adt_string_1
+	la	$a1, adt_string_2
+	la	$a2, adt_string_intersection
+	jal	intersection
+	move	$a0, $a2			# Move the intersection bit-string address into $a0, before calling print_letters_in_bit_string
+	jal	print_letters_in_bit_string
+
+print_difference:
+	li	$v0, 4
+	la	$a0, str_difference_output
+	syscall
+	la	$a0, adt_string_1
+	la	$a1, adt_string_2
+	la	$a2, adt_string_difference
+	jal	difference
+	move	$a0, $a2			# Move the intersection bit-string address into $a0, before calling print_letters_in_bit_string
 	jal	print_letters_in_bit_string
 
 print_exit:
@@ -180,4 +219,35 @@ bitmap1_or_bitmap2:
 store_union:
 	sw	$t6, 0($t3)				# Store the new bitmap that's been OR'd back to third pointer that was passed in
 union_end:
+	jr $ra
+
+intersection:
+	move	$t1, $a0				# Move pointer of first bit-string to $t1
+	move	$t2, $a1				# Move point of second bitstring to $t2
+	move	$t3, $a2				# Move pointer of third bit string, the union, to $t3
+intersection_load_first_bit_string:
+	lw	$t4, 0($t1)				# Load the 32-bit bit map into $t4
+intersection_load_second_bit_string:
+	lw	$t5, 0($t2)				# Load the 32-bit bit map into $t5
+bitmap1_and_bitmap2:
+	and	$t6, $t4, $t5				# bitmap1 | bitmap2
+store_intersection:
+	sw	$t6, 0($t3)				# Store the new bitmap that's been OR'd back to third pointer that was passed in
+intersection_end:
+	jr $ra
+
+difference:
+	move	$t1, $a0				# Move pointer of first bit-string to $t1
+	move	$t2, $a1				# Move point of second bitstring to $t2
+	move	$t3, $a2				# Move pointer of third bit string, the union, to $t3
+difference_load_first_bit_string:
+	lw	$t4, 0($t1)				# Load the 32-bit bit map into $t4
+difference_load_second_bit_string:
+	lw	$t5, 0($t2)				# Load the 32-bit bit map into $t5
+	not	$t5, $t5				# Invert all bits before AND (next instruction)
+bitmap1_difference_bitmap2:
+	and	$t6, $t4, $t5				# bitmap1 | bitmap2
+store_difference:
+	sw	$t6, 0($t3)				# Store the new bitmap that's been OR'd back to third pointer that was passed in
+difference_end:
 	jr $ra

@@ -238,6 +238,7 @@ print_letters_in_bit_string:
 	lw	$t0, 0($a0)				# Load contents of bit-map (in $a0) into $t0
 	li	$t1, 0					# Counter for bit string
 	li	$t2, 0					# Counter to hold the offset for the new ascii string
+	move	$t5, $t6				# Initialize $t5 to value of $t6, the starting address for the ascii string. Should fix bug when no string inputted
 
 while_not_end_of_bitstring:
 	beq	$t1, 25, end_while_not_end_of_bitstring # Once we reach last character, break out of while loop
@@ -257,7 +258,7 @@ end_if_char_is_set:
 
 end_while_not_end_of_bitstring:
 	li	$t7, 0x0A				# Store new line
-	sb	$t7, 1($t5)				# Store newline in penutlimate position
+	sb	$t7, 1($t5)				# Store newline in penultimate position
 	li	$t7, 0					# Load null terminator (i.e. 0)
 	sb	$t7, 2($t5)				# Store null terminator in last position
 	lw	$ra, 0($sp)				# restore the return

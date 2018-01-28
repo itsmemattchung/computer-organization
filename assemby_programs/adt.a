@@ -231,14 +231,22 @@ end_while_not_end_of_string:
 	jr $ra
 
 print_letters_in_bit_string:
-	add	$sp, $sp, -36				# Store the ret and allocate 32 bytes for ascii string
+	add	$sp, $sp, -128				# Store the ret and allocate 32 bytes for ascii string
 	sw	$ra, 0($sp)				# Store retunr address on the stack
+	sw	$s0, 4($sp)
+	sw	$s1, 8($sp)
+	sw	$s2, 12($sp)
 	move	$t6, $sp				# Copy address of $rsp to $t6, the register holding address of ascii string
-	add	$t6, $t6, 4				# Load address of the ascii string that we'll allocate for the print call
+	add	$t6, $t6, 16 				# Load address of the ascii string that we'll allocate for the print call
 	lw	$t0, 0($a0)				# Load contents of bit-map (in $a0) into $t0
 	li	$t1, 0					# Counter for bit string
 	li	$t2, 0					# Counter to hold the offset for the new ascii string
 	move	$t5, $t6				# Initialize $t5 to value of $t6, the starting address for the ascii string. Should fix bug when no string inputted
+
+init_string:
+	li	$t7, 123
+	sb	$t7, 0($t5)				# Store '{' at the beginning of string
+	add	$t2, $t2, 1				# Bump ascii string offset counter by
 
 while_not_end_of_bitstring:
 	beq	$t1, 25, end_while_not_end_of_bitstring # Once we reach last character, break out of while loop
@@ -257,12 +265,17 @@ end_if_char_is_set:
 	j while_not_end_of_bitstring
 
 end_while_not_end_of_bitstring:
+	li	$t7, 125
+	sb	$t7, 1($t5)
 	li	$t7, 0x0A				# Store new line
-	sb	$t7, 1($t5)				# Store newline in penultimate position
+	sb	$t7, 2($t5)				# Store newline in penultimate position
 	li	$t7, 0					# Load null terminator (i.e. 0)
-	sb	$t7, 2($t5)				# Store null terminator in last position
+	sb	$t7, 3($t5)				# Store null terminator in last position
 	lw	$ra, 0($sp)				# restore the return
-	add	$sp, $sp, 36
+	lw	$s0, 4($sp)
+	lw	$s1, 8($sp)
+	lw	$s2, 12($sp)
+	add	$sp, $sp, 128
 	li 	$v0, 4					# Load print system call
 	move	$a0, $t6				# Copy string into $a0
 	syscall

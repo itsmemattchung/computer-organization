@@ -249,6 +249,7 @@ init_string:
 	add	$t2, $t2, 1				# Bump ascii string offset counter by
 	li	$s0, 39					# Load ' into $s0
 	li	$s1, 44					# Load , into $
+	li	$s2, 0					# Load 0 into $s2, flag used to determine if we've added any characters to string
 
 while_not_end_of_bitstring:
 	beq	$t1, 25, end_while_not_end_of_bitstring # Once we reach last character, break out of while loop
@@ -257,6 +258,7 @@ while_not_end_of_bitstring:
 
 if_char_is_set:
 	beq	$t3, 0, end_if_char_is_set
+	li	$s2, 1					# $s2 used to check if we've added at least one character
 	add	$t4, $t1, 65				# Add 65 (i.e. first position for 'A') to $t1
 	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
 	sb	$s0, 0($t5)				# Load ' into $s0
@@ -270,6 +272,10 @@ end_if_char_is_set:
 	j while_not_end_of_bitstring
 
 end_while_not_end_of_bitstring:
+	beq	$s2, 0, finalize_string
+	sub	$t2, $t2, 1				# Move counter left by 1, overwriting the trailing comma
+
+finalize_string:
 	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
 	li	$t7, 125				# Load '}' at the end of the string
 	sb	$t7, 0($t5)				# Store '}' at the end of the sgin

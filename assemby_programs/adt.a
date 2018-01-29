@@ -1,11 +1,10 @@
-# t0
-# to_uppercase
-# This function accepts a pointer (to a string) and converts all lowercase letters
-# to uppercase, directly manipulating the array -- in place. We do this to avoid:
-#  1) managing a heap
-#  2) passing in two arguments, forcing the caller to manage a runtime stack for the new string
+# Programmer: Matt Chung
+# Description: Prompt user for 2 strings and convert each one into a bitstring data structure. Print each string
+#              as a set. In addition, create the union, intersection and difference (Set A - Set B), printing
+#              those as well. Finally, print the result of running choice() for the following chars: 'A', 'Q', 'Y', 'Z'
 #
-# I'm thinking out loud as I try to implement the difference of set 1 against set 2. We basically want the items that are in A and only in A, while not in B.
+# Notes for implementing difference (i.e. Set A - Set B):
+# ====================
 # 1001    1111    0010
 # 1000    1001    1100
 # ----    ----    ----
@@ -28,11 +27,11 @@ adt_string_difference: .space 4
 
 str_prompt_1:	.asciiz	"\nInput first string:"
 str_prompt_2:	.asciiz	"\nInput second string:"
-str_prompt_3:	.asciiz "\nExiting!"
+str_exiting:	.asciiz "\nExiting!"
 newline_char:	.asciiz "\n"
 
-str_chars_in_bitmap_1:		.asciiz "Set A contains: "
-str_chars_in_bitmap_2:		.asciiz "Set B contains: "
+str_set_a_contains:		.asciiz "Set A contains: "
+str_set_b_contains:		.asciiz "Set B contains: "
 str_union_output:		.asciiz "The union of the sets are: "
 str_intersection_output:	.asciiz "The intersection of the sets are: "
 str_difference_output:		.asciiz "The difference of A - B is: "
@@ -64,14 +63,14 @@ main:
 	la	$a1, adt_string_1
 	jal	adt_set
 	li	$v0, 4
-	la	$a0, str_chars_in_bitmap_1
+	la	$a0, str_set_a_contains
 	syscall
 	la	$a0, adt_string_1		# Load bitstring into $a0, the first argument
 	jal	print_letters_in_bit_string	# Call print_letters_in_bit_string
 
 
 	li	$v0, 4
-	la	$a0, str_chars_in_bitmap_2
+	la	$a0, str_set_b_contains
 	syscall
 
 adt_bitstring_2:
@@ -175,10 +174,10 @@ print_set_a_contains_z:
 
 print_exit:
 	li 	$v0, 4				# Load print system call
-	la 	$a0, str_prompt_3		# Print "exit"
+	la 	$a0, str_exiting		# Print "exit"
 	syscall
-	li $v0, 10			# Load exit() system call
-	syscall				# Exit to the program
+	li $v0, 10				# Load exit() system call
+	syscall					# Exit to the program
 
 
 adt_set:

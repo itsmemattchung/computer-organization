@@ -247,6 +247,8 @@ init_string:
 	li	$t7, 123
 	sb	$t7, 0($t5)				# Store '{' at the beginning of string
 	add	$t2, $t2, 1				# Bump ascii string offset counter by
+	li	$s0, 39					# Load ' into $s0
+	li	$s1, 44					# Load , into $
 
 while_not_end_of_bitstring:
 	beq	$t1, 25, end_while_not_end_of_bitstring # Once we reach last character, break out of while loop
@@ -257,20 +259,24 @@ if_char_is_set:
 	beq	$t3, 0, end_if_char_is_set
 	add	$t4, $t1, 65				# Add 65 (i.e. first position for 'A') to $t1
 	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
-	sb	$t4, 0($t5)				# Store ascii character into new ascii string
-	add	$t2, $t2, 1				# Bump ascii string offset counter by 1
+	sb	$s0, 0($t5)				# Load ' into $s0
+	sb	$t4, 1($t5)				# Store ascii character into new ascii string
+	sb	$s0, 2($t5)				# Store ' after character
+	sb	$s1, 3($t5)				# Store ',' at the end of the element
+	add	$t2, $t2, 4				# Bump ascii string offset counter by 1
 
 end_if_char_is_set:
 	add $t1, $t1, 1					# Increment bit-string counter by 1
 	j while_not_end_of_bitstring
 
 end_while_not_end_of_bitstring:
-	li	$t7, 125
-	sb	$t7, 1($t5)
-	li	$t7, 0x0A				# Store new line
-	sb	$t7, 2($t5)				# Store newline in penultimate position
+	add	$t5, $t2, $t6				# Calculate address for char position in ascii string
+	li	$t7, 125				# Load '}' at the end of the string
+	sb	$t7, 0($t5)				# Store '}' at the end of the sgin
+	li	$t7, 0x0A				# Load "\n" into $t7
+	sb	$t7, 1($t5)				# Store newline in penultimate position
 	li	$t7, 0					# Load null terminator (i.e. 0)
-	sb	$t7, 3($t5)				# Store null terminator in last position
+	sb	$t7, 2($t5)				# Store null terminator in last position
 	lw	$ra, 0($sp)				# restore the return
 	lw	$s0, 4($sp)
 	lw	$s1, 8($sp)
